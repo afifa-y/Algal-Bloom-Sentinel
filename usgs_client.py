@@ -61,7 +61,6 @@ def search_sites_by_name(state_code: str, name_query: str = "", limit: int = 20)
         "format": "rdb",
         "stateCd": state_code,
         "parameterCd": ",".join(PARAM_CODES.keys()),
-        "siteOutput": "expanded",
         "seriesCatalogOutput": "true",
         "outputDataTypeCd": "iv",
     }
@@ -72,7 +71,11 @@ def search_sites_by_name(state_code: str, name_query: str = "", limit: int = 20)
         raise USGSFetchError(f"Network error contacting USGS site service: {e}")
 
     if resp.status_code != 200:
-        raise USGSFetchError(f"USGS site service returned status {resp.status_code}: {resp.text[:300]}")
+        raise USGSFetchError(
+            f"USGS site service returned status {resp.status_code} for state "
+            f"'{state_code}'. This can happen if the state has very few "
+            f"matching sites - try a different state, e.g. WI, TX, CA, or ND."
+        )
 
     rows = _parse_rdb(resp.text)
     if not rows:
